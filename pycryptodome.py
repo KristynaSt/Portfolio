@@ -1,3 +1,7 @@
+"""
+Encryption and decryption of a string using AES.
+"""
+
 from Crypto.Cipher import AES
 from Crypto.Random import get_random_bytes
 
