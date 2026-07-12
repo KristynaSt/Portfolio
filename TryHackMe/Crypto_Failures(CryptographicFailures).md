@@ -8,6 +8,7 @@ Enumerated Ker!!!!!!!!!!!!!POPIS SHRNUTÍ
 - **Web Browser**
 - **Bash terminal**
 - **nmap**
+- **GoBuster**
 
 ## Methodology:
 
@@ -43,49 +44,134 @@ Enumerated Ker!!!!!!!!!!!!!POPIS SHRNUTÍ
 
     <img src="\assets\Crypto_Failures_file.png" alt="file_download" width="1000px">
 
-4. **Connecting to SMB via Guest**
-    - Trying to utilize the found Guest username and list SMB shares: nxc smb 10.112.156.194 -u 'guest' -p '' --shares .
+4. **Analyzing the .bak file**
+    - Content of index.php.bak - It is a cookies-making script.
+    1. The script is loading a secret key ($ENC_SECRET_KEY) from config.php file.
+    2. A function generates 2-digits salt: $SALT = generatesalt(2);
+    3. A string ($secure_cookie_string) is created from 3 items: user:user-agent:secret-key (for example: guest:Mozilla/5.0:SuperSecretKey)
+    4. The function make_secure_cookie() transforms the string into the value of the cookie.
+    5. The script then sets 2 separate cookies:
+        secure_cookie=result made by function make_secure_cookie()
+        user=user (guest/admin)
+    6. The secure cookie string is separated into blocks of 8 symbols and function cryptstring() hashes each string with the value of the salt.
+    7. 
 
-    <img src="\assets\Soupdecode01_guest.png" alt="guest" width="1000px">
+    ```php
+    <?php
+include('config.php');
 
-5. **Brute-forcing SMB via RID**
-    - nxc smb 10.112.156.194 -u 'guest' -p '' --rid-brute
-    - The results had so many usernames - with grep, we will filter only the plain usernames without the domain name and save it to a file usernames.txt, so we can use them in a brute-force in the next step: nxc smb 10.112.156.194 -u 'guest' -p '' --rid-brute | grep -oP '(?<=SOUPEDECODE\\)[^ ]+' > usernames.txt .
-    We have 1089 usernames saved in the file.
+function generate_cookie($user,$ENC_SECRET_KEY) {
+    $SALT=generatesalt(2);
+    
+    $secure_cookie_string = $user.":".$_SERVER['HTTP_USER_AGENT'].":".$ENC_SECRET_KEY;
 
-6. **Brute-forcing SMB**
-    - Trying to breute-force to SMB via list of valid usernames with password being the same as the username: awk '{print $0":"$0}' usernames.txt > formatted.txt . 
-    - Executing the brute-force via kerbrute: ./kerbrute_linux_amd64 bruteforce formatted.txt --dc DC01.SOUPEDECODE.LOCAL -d SOUPEDECODE.LOCAL .
-    - Found 1 valid credentials:
-        [+] VALID LOGIN:	 ybob317@SOUPEDECODE.LOCAL:ybob317
+    $secure_cookie = make_secure_cookie($secure_cookie_string,$SALT);
 
-7. **Connecting to SMB via valid credentials**
-    - Using NetExec to connect as user 'ybob317': nxc smb 10.112.156.194 -u 'ybob317' -p 'ybob317' --shares . Success!
+    setcookie("secure_cookie",$secure_cookie,time()+3600,'/','',false); 
+    setcookie("user","$user",time()+3600,'/','',false);
+}
 
-    <img src="\assets\Soupdecode01_SMBlist.png" alt="SMB_list" width="1000px">
+function cryptstring($what,$SALT){
 
-8. **Accessing share /Users**
-    - Via smbclient accessing the share /Users: smbclient //10.112.156.194/Users -U ybob317%ybob317 . After exploring the share I found the user flag in: /Users/ybob317/Desktop/user.txt. Downloaded the user flag using: get user.txt (FLAG: 28189316c25dd3c0ad56d44d000d62a8).
+return crypt($what,$SALT);
 
-9. **Kerberoasting**
-    - Kerberoasting using nxc: nxc ldap 10.112.156.194 -u ybob317 -p ybob317 --kerberoasting output.txt .
-    This command searching via LDAP account that have a set SPN (Service Principal Name), requests for the accounts TGS (Kerberos Service Ticket) and saves the aquired ticket hashes to .txt file.
-    We found 5 SPN accounts, we will further user this one: file_svc. Saved the file_svc ticket hash into file hash.txt.
+}
 
-10. **Cracking the SPN account password**
-    - Trying to decrypt the TGS hash using HashCat: hashcat -m13100 hash.txt /usr/share/wordlists/rockyou.txt . Success! Password is: Password123!! .
+function make_secure_cookie($text,$SALT) {
 
-11. **Connecting to SMB through SPN account**
-    - nxc smb 10.112.156.194 -u 'file_svc' -p 'Password123!!' --shares . Successfully connected and listed shares - we can now also read the /backup. 
-    - smbclient //10.112.156.194/backup -U file_svc . We found the file backup_extract.txt -> get backup_extract.txt .
-    - We see some NTLM hashes in the file:
+$secure_cookie='';
 
-    <img src="\assets\Soupdecode01_backup.png" alt="backup" width="1000px">
+foreach ( str_split($text,8) as $el ) {
+    $secure_cookie .= cryptstring($el,$SALT);
+}
 
-12. **Pass-the-Hash**
-    - smbclient //10.112.156.194/C$ -U 'FileServer$%e41da7e79a4c76dbd9cf79d1cb325559' --pw-nt-hash
-    - Found the flag in path: Users/Administrator/Desktop/root.txt
-    - get root.txt
-    - cat root.txt -> Flag: 27cb2be302c388d63d27c86bfdd5f56a
+return($secure_cookie);
+}
+
+function generatesalt($n) {
+$randomString='';
+$characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+for ($i = 0; $i < $n; $i++) {
+    $index = rand(0, strlen($characters) - 1);
+    $randomString .= $characters[$index];
+}
+return $randomString;
+}
+
+function verify_cookie($ENC_SECRET_KEY){
+
+
+    $crypted_cookie=$_COOKIE['secure_cookie'];
+    $user=$_COOKIE['user'];
+    $string=$user.":".$_SERVER['HTTP_USER_AGENT'].":".$ENC_SECRET_KEY;
+
+    $salt=substr($_COOKIE['secure_cookie'],0,2);
+
+    if(make_secure_cookie($string,$salt)===$crypted_cookie) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+if ( isset($_COOKIE['secure_cookie']) && isset($_COOKIE['user']))  {
+
+    $user=$_COOKIE['user'];
+
+    if (verify_cookie($ENC_SECRET_KEY)) {
+        
+    if ($user === "admin") {
+   
+        echo 'congrats: ******flag here******. Now I want the key.';
+
+            } else {
+        
+        $length=strlen($_SERVER['HTTP_USER_AGENT']);
+        print "<p>You are logged in as " . $user . ":" . str_repeat("*", $length) . "\n";
+	    print "<p>SSO cookie is protected with traditional military grade en<b>crypt</b>ion\n";    
+    }
+
+} else { 
+
+    print "<p>You are not logged in\n";
+
+}
+
+}
+  else {
+
+    generate_cookie('guest',$ENC_SECRET_KEY);
+    
+    header('Location: /');
+
+}
+?>
+    ```
+
+5. **Get the value of our cookie**
+    - From Inspect we copy the value of our cookie.
+
+    <img src="\assets\Crypto_Failures_cookie.png" alt="cookie" width="1000px">
+
+6. **Reversing the cookie script**
+    - The cookie is composed of 29 strings each composed of 13 symbols:
+
+    lb7NSQVKII/xMlbSWUALKQkTdclbqNHCHlMb2IglbVqJC01B.ixolbB7iJhmQibUUlb04yZjAU6tbolbUs7NJp6wQkIlbkhj828r0JCclbyFRIEvG3Ik2lb/8Tt1C2AM.6lblaFxGrwRKMMlbph0SXuMCedklbjfONPBmXZSIlbjh4lifLVPY.lbFlQbRJviwKolbd9gbgcYvhQglb77NNFoZAUBklb7JS3G1oOhQIlbN/BsekmCM0olbkQb.FfO/DBolbGQ1M.CnpZYQlbt49SHHVbIp2lbctBi8ETlzjIlbLXG3tP9wJA2lbUfn3Z7bPyc6lb6hhaY67E6/glb0UPWjIZpfw2lbnXRE.VVii1Mlb0pXLxIYnSs
+
+    - We need to alter only the first part - change the user:guest to user:admin.
+
+    Salt = lb
+    UserAgent = Mozilla/5.0 (X11; Linux x86_64; rv:152.0) Gecko/20100101 Firefox/152.0
+    User = admin
+
+    php -r 'echo crypt("admin:Mo","1b"), PHP_EOL;'
+
+7. I put the new cookie into Inspect->Storage->Cookies and also changed the other cookies to user: admin. After reloading the page we got the flag.
+
+    <img src="\assets\Crypto_Failures_flag.png" alt="flag" width="1000px">
+
 
 ## Remediation
+
+Replace the cookie-generating mechanism with a cryptographic authentication mechanism such as HMAC-SHA256. Do not use control values from the client such as the User Agent of the client.
+
