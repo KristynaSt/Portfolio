@@ -1,6 +1,6 @@
 # OWASP Juice Shop - CSRF
 
-**OWASP Category:** A01:2025 Broken Access Control\
+**OWASP Category:** A01:2025 Broken Access Control
 
 Through finding and utilizing a CSRF vulnerability I was able to change username of a user registered on the OWASP Juice Shop.
 

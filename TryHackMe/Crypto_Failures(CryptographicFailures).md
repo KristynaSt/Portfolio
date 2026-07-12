@@ -2,7 +2,7 @@
 
 **OWASP Category: A04:2025 Cryptographic Failures** 
 
-Enumerated Ker!!!!!!!!!!!!!POPIS SHRNUTÍ
+A public-facing .bak file was found containing php script that is used to generate authentication cookies, after reviewing the mechanism of the script I found a way to create a new cookie that was successfully used as admin authentication cookie.
 
 ## Tools:
 - **Web Browser**
@@ -45,7 +45,8 @@ Enumerated Ker!!!!!!!!!!!!!POPIS SHRNUTÍ
     <img src="\assets\Crypto_Failures_file.png" alt="file_download" width="1000px">
 
 4. **Analyzing the .bak file**
-    - Content of index.php.bak - It is a cookies-making script.
+    - The file index.php.bak contains a script for generating cookies.
+
     1. The script is loading a secret key ($ENC_SECRET_KEY) from config.php file.
     2. A function generates 2-digits salt: $SALT = generatesalt(2);
     3. A string ($secure_cookie_string) is created from 3 items: user:user-agent:secret-key (for example: guest:Mozilla/5.0:SuperSecretKey)
@@ -54,13 +55,12 @@ Enumerated Ker!!!!!!!!!!!!!POPIS SHRNUTÍ
         secure_cookie=result made by function make_secure_cookie()
         user=user (guest/admin)
     6. The secure cookie string is separated into blocks of 8 symbols and function cryptstring() hashes each string with the value of the salt.
-    7. 
 
     ```php
     <?php
-include('config.php');
+    include('config.php');
 
-function generate_cookie($user,$ENC_SECRET_KEY) {
+    function generate_cookie($user,$ENC_SECRET_KEY) {
     $SALT=generatesalt(2);
     
     $secure_cookie_string = $user.":".$_SERVER['HTTP_USER_AGENT'].":".$ENC_SECRET_KEY;
@@ -69,36 +69,36 @@ function generate_cookie($user,$ENC_SECRET_KEY) {
 
     setcookie("secure_cookie",$secure_cookie,time()+3600,'/','',false); 
     setcookie("user","$user",time()+3600,'/','',false);
-}
+    }
 
-function cryptstring($what,$SALT){
+    function cryptstring($what,$SALT){
 
-return crypt($what,$SALT);
+    return crypt($what,$SALT);
 
-}
+    }
 
-function make_secure_cookie($text,$SALT) {
+    function make_secure_cookie($text,$SALT) {
 
-$secure_cookie='';
+    $secure_cookie='';
 
-foreach ( str_split($text,8) as $el ) {
+    foreach ( str_split($text,8) as $el ) {
     $secure_cookie .= cryptstring($el,$SALT);
-}
+    }
 
-return($secure_cookie);
-}
+    return($secure_cookie);
+    }
 
-function generatesalt($n) {
-$randomString='';
-$characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-for ($i = 0; $i < $n; $i++) {
+    function generatesalt($n) {
+    $randomString='';
+    $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    for ($i = 0; $i < $n; $i++) {
     $index = rand(0, strlen($characters) - 1);
     $randomString .= $characters[$index];
-}
-return $randomString;
-}
+    }
+    return $randomString;
+    }
 
-function verify_cookie($ENC_SECRET_KEY){
+    function verify_cookie($ENC_SECRET_KEY){
 
 
     $crypted_cookie=$_COOKIE['secure_cookie'];
@@ -112,9 +112,9 @@ function verify_cookie($ENC_SECRET_KEY){
     } else {
         return false;
     }
-}
+    }
 
-if ( isset($_COOKIE['secure_cookie']) && isset($_COOKIE['user']))  {
+    if ( isset($_COOKIE['secure_cookie']) && isset($_COOKIE['user']))  {
 
     $user=$_COOKIE['user'];
 
@@ -131,21 +131,21 @@ if ( isset($_COOKIE['secure_cookie']) && isset($_COOKIE['user']))  {
 	    print "<p>SSO cookie is protected with traditional military grade en<b>crypt</b>ion\n";    
     }
 
-} else { 
+    } else { 
 
     print "<p>You are not logged in\n";
 
-}
+    }
 
-}
-  else {
+    }
+    else {
 
     generate_cookie('guest',$ENC_SECRET_KEY);
     
     header('Location: /');
 
-}
-?>
+    }
+    ?>
     ```
 
 5. **Get the value of our cookie**
@@ -160,13 +160,16 @@ if ( isset($_COOKIE['secure_cookie']) && isset($_COOKIE['user']))  {
 
     - We need to alter only the first part - change the user:guest to user:admin.
 
-    Salt = lb
-    UserAgent = Mozilla/5.0 (X11; Linux x86_64; rv:152.0) Gecko/20100101 Firefox/152.0
-    User = admin
+    - Salt = lb
+    - UserAgent = Mozilla/5.0 (X11; Linux x86_64; rv:152.0) Gecko/20100101 Firefox/152.0
+    - User = admin
 
+    ```bash
     php -r 'echo crypt("admin:Mo","1b"), PHP_EOL;'
+    ```
 
-7. I put the new cookie into Inspect->Storage->Cookies and also changed the other cookies to user: admin. After reloading the page we got the flag.
+7. **Authenticating as admin with a forged cookie**
+    - I put the new cookie into Inspect->Storage->Cookies and also changed the other cookies to user: admin. After reloading the page we got the flag.
 
     <img src="\assets\Crypto_Failures_flag.png" alt="flag" width="1000px">
 

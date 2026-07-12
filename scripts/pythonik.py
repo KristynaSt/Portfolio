@@ -1,21 +1,12 @@
 import socket
 
-url = "example.com"
-port = 80
+server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+server.bind(("127.0.0.1", 8888))
 
-client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-client.connect((url, port))
+print("UDP server běží...")
 
-request = b"GET / HTTP/1.1\r\nHost: example.com\r\nConnection: close\r\n\r\n"
-client.sendall(request)
-
-response = b""
 while True:
-    data = client.recv(4096)
-    if not data:
-        break
-    response += data
+    data, address = server.recvfrom(1024)
+    print(f"Od {address}: {data.decode()}")
 
-client.close()
-
-print(response.decode(errors="ignore"))
+    server.sendto(b"Zprava prijata", address)

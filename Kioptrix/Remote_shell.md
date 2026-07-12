@@ -1,4 +1,4 @@
-# Getting shell with Metasploit
+# Getting¨remote shell with Metasploit
 
 
-# Getting shell with OpenFuck
+# Getting remote shell with OpenFuck
