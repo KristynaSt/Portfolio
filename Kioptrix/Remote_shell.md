@@ -42,3 +42,7 @@ Enumerating Kioptrix VM, we find an old Samba version running that is vulnerable
     - After running the exploit we had successfully gained a shell on Kioptrix:
 
     <img src="\assets\Kioptrix_gained_shell.png" alt="gained_shell" width="1000px">
+
+## Remediation:
+
+Upgrade Samba to a supported version. Regularly perform vulnerability scanning to discover unpatched vulnerabilities.
