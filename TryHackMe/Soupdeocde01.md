@@ -1,6 +1,6 @@
 # Try Hack Me - Soupdecode 01
 
-**OWASP Category:** 
+**OWASP Category: A07:2025 Authentication Failures**
 
 Enumerated Kerberos users using Kerbrute tool and through RID brute-forcing we were able to connect to SMB as a valid user. Using Kerberoasting attack, we revealed SPN accounts. Using HashCat we cracked the password to one SPN account and were able to access SMB shares using the SPN account.
 
@@ -77,3 +77,5 @@ Enumerated Kerberos users using Kerbrute tool and through RID brute-forcing we w
     - cat root.txt -> Flag: 27cb2be302c388d63d27c86bfdd5f56a
 
 ## Remediation
+
+Enforce a strong password policy. Restrict anonymous and guest enumerations of users and SMB resources. Apply the principle of least privilege to network shares. Implement SIEM to monitor suspicious actiivty such as password-spraying and Kerberoasting.
