@@ -5,14 +5,12 @@
 Enumerated Kerberos users using Kerbrute tool and through RID brute-forcing we were able to connect to SMB as a valid user. Using Kerberoasting attack, we revealed SPN accounts. Using HashCat we cracked the password to one SPN account and were able to access SMB shares using the SPN account.
 
 ## Tools:
-- **Web Browser**
-- **Bash terminal**
-- **nmap**
-- **smbclient**
-- **kerbrute** (github.com/ropnop/kerbrute)
+- **NMap**
+- **SMBClient**
+- **Kerbrute** (github.com/ropnop/kerbrute)
 - **nxc**
 - **awk**
-- **hashcat**
+- **HashCat**
 
 ## Methodology:
 

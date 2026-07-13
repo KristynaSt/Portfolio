@@ -5,9 +5,7 @@
 Through finding and utilizing a CSRF vulnerability I was able to change username of a user registered on the OWASP Juice Shop.
 
 ## Tools:
-- **Web Browser**
 - **Burp Suite**
-- **Bash terminal**
 
 ## Methodology:
 

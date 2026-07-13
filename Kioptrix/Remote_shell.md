@@ -5,7 +5,6 @@
 Enumerating Kioptrix VM, we find an old Samba version running that is vulnerable to exploits. Utilizing a Metasploit payload we gain a remote shell on Kioptrix.
 
 ## Tools:
-- **Bash terminal**
 - **Metasploit**
 - **Kioptrix VM from VulnHub**
 

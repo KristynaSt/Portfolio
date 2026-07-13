@@ -5,9 +5,7 @@
 A public-facing .bak file was found containing php script that is used to generate authentication cookies, after reviewing the mechanism of the script I found a way to create a new cookie that was successfully used as admin authentication cookie.
 
 ## Tools:
-- **Web Browser**
-- **Bash terminal**
-- **nmap**
+- **NMap**
 - **GoBuster**
 
 ## Methodology:
