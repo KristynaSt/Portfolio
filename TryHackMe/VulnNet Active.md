@@ -2,7 +2,7 @@
 
 **OWASP Category: A05:2025 Security Misconfiguration**
 
-popisek shrnutí
+Discovered a legacy version of Redis running on the target. Exploited the old version by connecting to Redis without authentication. Utilized Responder to catch NTLMv2 hash of Redis service account and cracked the accounts password.
 
 ## Tools:
 - **Nmap**
@@ -58,4 +58,4 @@ popisek shrnutí
     <img src="\assets\VulnNet_cracked.png" alt="cracked_hash" width="1000px">
 
 ## Remediation:
-    Upgrade Redis version to a patched version. Regularly perform vulnerability scanning to discover unpatched vulnerabilities. Enforce strong password policy.
+Upgrade Redis version to a patched version. Regularly perform vulnerability scanning to discover unpatched vulnerabilities. Enforce strong password policy.
