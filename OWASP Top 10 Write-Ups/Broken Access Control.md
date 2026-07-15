@@ -1,8 +1,8 @@
-# OWASP Juice Shop - Forged Coupon
+# OWASP Juice Shop - CSRF
 
-**OWASP Category: A08:2025 Software or Data Integrity Failures**
+**OWASP Category:** A01:2025 Broken Access Control
 
-popisek 
+Through finding and utilizing a CSRF vulnerability I was able to change username of a user registered on the OWASP Juice Shop.
 
 ## Tools:
 - **Burp Suite**
@@ -33,3 +33,8 @@ popisek
     -In real-attack scenario the HTML has to be uploaded to a publicly accessible domain so it can be accessed by the targetted user. The user have an active session on the targetted platfom. To solve this CTF, I opened the HTML file from terminal with xdf-open filename.html. After refreshing the users profile page, the username has been changed to "HackedbyKristyna".
 
     <img src="\assets\BrokenAccess_CSRF_result.png" alt="CSRF_result" width="1000px">
+
+## Remediation
+- **Anti-CSRF Tokens**
+- **Same-Site Cookies**
+- **CORS Policies** - Cross-Origin Resource Sharing
