@@ -1,4 +1,4 @@
-# Try Hack Me - ÖWASP Top 10 2025: Insecure Design
+# Try Hack Me - OWASP Top 10 2025: Insecure Design
 
 **OWASP Category: A06:2025 Insecure Design**
 
