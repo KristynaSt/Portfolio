@@ -2,7 +2,7 @@
 
 **OWASP Category: A03:2025 – Injection** 
 
-popis
+Exploring the SMB targets SMB shares, we found password list and a username to authenticate into the targets mail client. In the mail inbox, we found another password for the users SMB access. After enumerating the targets directories, we discovered a usage of legacy Cuppa CMS that has a RFI vulnerability. After utilizing the exploit, we were able to gain a reverse shell on the target.
 
 ## Tools:
 - **Burp Suite**
@@ -124,5 +124,7 @@ popis
 
 ## Remediation
 Do not store passwords in plaintext and do not send them over e-mail. 
+
 Update Cuppa CMS to the latest supported version and run a regular vulnerability scans.
+
 Do not pass user-controlled input directly into PHP functions. Have a predefined allow list of trusted files. 
