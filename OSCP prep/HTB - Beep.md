@@ -31,7 +31,7 @@ After enumerating the open ports of the target, we discovered a running Elastix 
     4445/tcp  open  upnotifyp
     10000/tcp open  snet-sensor-mgmt
 
-  - On port 443 the target was running a Elastix software.
+    - On port 443 the target was running a Elastix software.
 
 2. **Exploiting Elastix vulnerability**
     - Using the tools searchsploit, we discovered that the Elastix software version 2.2.0 is vulnerable to a Local File Inclusion vulnerability. The exploit is described here: https://www.exploit-db.com/exploits/37637 .
@@ -53,7 +53,7 @@ After enumerating the open ports of the target, we discovered a running Elastix 
 
 3. **Authenticating with the gained credentials**
     - After spraying the newly gained credentials over the target network, we successfully authenticated to the target via SSH and gained a root shell.
-    - We had to add some parameters to ssh command, because the target was using old cryptographic algorithms.
+    - We had to add some parameters to the ssh command, because the target was using old cryptographic algorithms.
 
     ```bash
     ssh -oKexAlgorithms=+diffie-hellman-group1-sha1 -oHostKeyAlgorithms=+ssh-rsa -oPubkeyAcceptedAlgorithms=+ssh-rsa root@10.129.229.183  
